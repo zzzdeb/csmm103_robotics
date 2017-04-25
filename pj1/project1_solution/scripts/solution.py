@@ -5,7 +5,7 @@ from std_msgs.msg import Int16
 from project1_solution.msg import TwoInts
 
 def listener():
-  	rospy.init_node('two_int_listener',anonymous-True)
+  	rospy.init_node('two_int_listener',anonymous=True)
  	sub = rospy.Subscriber('two_ints', TwoInts,callback)
    
    	rospy.spin()
@@ -15,8 +15,8 @@ def callback(msg):
  	
 
 
-if __name__="__main__":
+if __name__=="__main__":
  	try:
    		listener()
-    except rospy.ROSInterruptException:
-     	pass
+	except rospy.ROSInterruptException:
+		pass

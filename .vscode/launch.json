@@ -1,6 +1,7 @@
 {
     "version": "0.2.0",
     "configurations": [
+        
         {
             "name": "C++ Launch",
             "type": "cppdbg",
@@ -39,7 +40,7 @@
             "name": "C++ Attach",
             "type": "cppdbg",
             "request": "attach",
-            "program": "/home/zzz/ros/catkin_ws/devel/lib/project1_solution/solution",
+            "program": "/home/zzz/ros/catkin_ws/devel/lib/marker_publisher/marker_publisher",
             "processId": "${command:pickProcess}",
             "linux": {
                 "MIMode": "gdb",

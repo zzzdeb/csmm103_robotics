@@ -11,7 +11,7 @@ def listener():
    	rospy.spin()
 
 def callback(msg):
- 	rospy.log_info(rospy.get_caller_id()+'I heard %s', msg.data)
+ 	rospy.log_info(rospy.get_caller_id()+'I heard %i', msg.a+msg.b)
  	
 
 

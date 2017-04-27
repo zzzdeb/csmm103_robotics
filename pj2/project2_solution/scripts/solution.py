@@ -56,7 +56,11 @@ def publish_transforms():
     tm2_rev = tf.transformations.inverse_matrix(tm2)
     n_p = np.dot(tm3_rev, np.dot(tm2_rev, t1))
     print n_p
-
+    rot_ax = np.cross(np.array([1,0,0]).T, n_p[:3])
+    print rot_ax
+    # normed_rot_ax = rot_ax/np.sqrt(np.dot(rot_ax.T,rot_ax))
+    alpha = np.arccos(np.dot(np.array([1,0,0]).T, n_p[:3])/np.sqrt(np.dot(n_p[:3].T, n_p[:3])))
+    print alpha
     camera_transform = geometry_msgs.msg.TransformStamped()
     camera_transform.header.stamp = rospy.Time.now()
     camera_transform.header.frame_id = "robot_frame"
@@ -64,8 +68,9 @@ def publish_transforms():
     camera_transform.transform.translation.x = 0
     camera_transform.transform.translation.y = 0.1
     camera_transform.transform.translation.z = 0.1
-    q3 = tf.transformations.quaternion_from_euler(0, np.arctan2(n_p[2], n_p[0]), np.arctan2(n_p[1], n_p[0]))
-    q3 = tf.transformations.quaternion_from_euler(0, 0, 0)
+    q3 = tf.transformations.quaternion_from_euler(0, 1.5+np.arctan2(n_p[1], n_p[0]), 1.5+np.arctan2(n_p[2], n_p[0]),'sxzy')
+    # q3 = tf.transformations.quaternion_from_euler(0, 0, 0)
+    q3 = tf.transformations.quaternion_about_axis(alpha,rot_ax)
     camera_transform.transform.rotation.x = q3[0]
     camera_transform.transform.rotation.y = q3[1]
     camera_transform.transform.rotation.z = q3[2]

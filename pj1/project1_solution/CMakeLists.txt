@@ -6,6 +6,7 @@ project(project1_solution)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   rospy
+  roscpp
   std_msgs
   message_generation
 )
@@ -127,7 +128,11 @@ include_directories(
 # add_dependencies(tf2_examples ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(tf2_examples_node src/tf2_examples_node.cpp)
+add_executable(solution src/solution.cpp)
+
+target_link_libraries(solution
+     ${catkin_LIBRARIES}
+)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above

@@ -130,37 +130,16 @@ include_directories(
 # add_dependencies(tf2_examples ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-<<<<<<< HEAD
-<<<<<<< HEAD
 add_executable(solution src/solution.cpp)
-=======
-# add_executable(tf2_examples_node src/tf2_examples_node.cpp)
->>>>>>> 96435f27a8a110870d8910a029a943169e1fb46f
-=======
-# add_executable(tf2_examples_node src/tf2_examples_node.cpp)
->>>>>>> 96435f27a8a110870d8910a029a943169e1fb46f
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(tf2_examples_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-<<<<<<< HEAD
-<<<<<<< HEAD
 target_link_libraries(solution
   ${catkin_LIBRARIES}
 )
-=======
-# target_link_libraries(tf2_examples_node
-#   ${catkin_LIBRARIES}
-# )
->>>>>>> 96435f27a8a110870d8910a029a943169e1fb46f
-=======
-# target_link_libraries(tf2_examples_node
-#   ${catkin_LIBRARIES}
-# )
->>>>>>> 96435f27a8a110870d8910a029a943169e1fb46f
-
 #############
 ## Install ##
 #############

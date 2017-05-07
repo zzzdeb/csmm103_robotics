@@ -6,7 +6,7 @@
             "name": "C++ Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/home/zzz/ros/catkin_ws/devel/lib/project1_solution/solution",
+            "program": "/home/zzz/ros/catkin_ws/devel/lib/project2_solution/solution",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}",

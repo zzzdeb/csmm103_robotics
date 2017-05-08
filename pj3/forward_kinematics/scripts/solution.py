@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import numpy
+import numpy as np
 
 import geometry_msgs.msg
 import rospy
@@ -8,6 +8,7 @@ from sensor_msgs.msg import JointState
 import tf
 import tf.msg
 from urdf_parser_py.urdf import URDF
+
 
 """ Starting from a computed transform T, creates a message that can be
 communicated over the ROS wire. In addition to the transform itself, the message
@@ -126,7 +127,22 @@ class ForwardKinematics(object):
         all_transforms = tf.msg.tfMessage()
         # We start with the identity
         T = tf.transformations.identity_matrix()
-        
+        T_prev = tf.transformations.identity_matrix()
+        joint_value_dic = dict(zip(joint_values.name, joint_values.position))
+        parent = "world_link"
+        for (num, joint) in enumerate(joints):
+            [r, p, y] = joint.origin.rpy
+            T = tf.transformations.euler_matrix(r, p, y)
+            T[:3,3] = joint.origin.xyz
+            
+            #edit T using joint_value_dict[joint.name]
+            if joint.type == "revolute":
+                T_joint = tf.transformations.rotation_matrix(joint_value_dic[joint.name], joint.axis)
+                T = np.dot(T, T_joint)
+
+            T_prev = np.dot(T_prev, T)
+            transformationMatrix = convert_to_message(T_prev, link_names[num], parent)
+            all_transforms.transforms.append(transformationMatrix)
         # YOUR CODE GOES HERE
         
         return all_transforms

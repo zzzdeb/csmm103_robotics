@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 
-#include <tf/
+// #include <tf/
 #include <sensor_msgs/JointState.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <tf/transformation.h>
@@ -16,7 +16,8 @@ class ForwardKinematics
     {
         sub = nh_.subscribe("joint_states", 100, &ForwardKinematics::call_back, this)
         pub = nh_.advertise<>("/tf",,1);
-        robot = 
+        robot.initParamWithNodeNodeHandle("robot_description");
+
 
     }
     ~ForwardKinematics();
@@ -27,11 +28,17 @@ class ForwardKinematics
     
     void call_back()
     {
+        urdf::LinkConstSharedPtr link_name = robot.getRoot();
         vector<String> link_names;
         vector<String> joints;
         while (true)
         {
-            if 
+            if (link_name not in robot.getLinks())
+                break;
+            if len(self.robot.child_map[link_name]) != 1:
+                rospy.logerror("Forked kinematic chain!");
+                break
+            
         }
         all_transfomrs = compute_transforms();
         pub.publish(all_transforms);
@@ -39,7 +46,7 @@ class ForwardKinematics
 
     compute_transform()
     {
-
+        
     }
 
     privat:

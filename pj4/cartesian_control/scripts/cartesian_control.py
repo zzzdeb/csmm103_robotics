@@ -41,40 +41,141 @@ In addition, the parameters below are relevant only if you are also choosing to 
     num_joints = len(joint_transforms)
     dq = np.zeros(num_joints)
     #-------------------- Fill in your code here ---------------------------
-    ee_T_b_current = np.linalg.inv(b_T_ee_current), 
-    dx_matrix = np.dot(b_T_ee_desired, ee_T_b_current)
-    # dx = rotation_from_matrix(dx_matrix)
-
-    proportion = 1
-    dx_vel = proportion*d_x
+    (ee_T_b_current,) = np.linalg.inv(b_T_ee_current), 
+    current_T_desired = np.dot(ee_T_b_current, b_T_ee_desired)
+    
+    proportion = 0.5
+    (dx_angle, axis) = rotation_from_matrix(current_T_desired)
+    dx_angle =dx_angle*proportion
+    dx_trans = proportion*tf.transformations.translation_from_matrix(current_T_desired)
     # if dx_vel>0.5:
     #     dx_vel = 0.5
-
-    v = np.dot()
+    v = np.zeros(6)
+    v[:3] = dx_trans.copy()
+    # v[3:] = tf.transformations.euler_from_matrix(v_ee)
+    v[3:] = axis*dx_angle
+    for i in range(len(v)):
+        if v[i]>0.1:
+            v[i] = 0.1
     J = np.zeros((6,num_joints))
-    J_i = np.zeros((6,1))
+    J_i = np.zeros(6)
     for (num, joint_t) in enumerate(joint_transforms):
         # J_i = calculate from joint_t and b_T_ee_current
-        atb = np.linalg.inv(joint_t)[3,:3]
-        [x, y, z] = atb
+        a = b_T_ee_current
+        b = np.linalg.inv(joint_t)
+        ee_T_j = np.dot(b,a)
+        j_T_ee = np.linalg.inv(ee_T_j)
+        [x, y, z] = ee_T_j[:3,3]
         s_t_ab = np.array([
-            [0, -z], y,
+            [0, -z, y],
             [z, 0, -x],
             [-y, x, 0]
             ])
-        J_i[:3] = np.dot(-joint_t,s_t_ab)[:3,2]
-        J_i[3:] = joint_t[:3,2]
+        J_i[:3] = np.dot((-j_T_ee)[:3,:3],s_t_ab)[:3,2]
+        J_i[3:] = j_T_ee[:3,2]
         # J.concatinate J_temp[:,5]
-        J[:,i] = J_i
+        J[:,num] = J_i
 
-    epsilon = 0.1
+    epsilon = 0.0000000001
     J_plus = np.linalg.pinv(J, epsilon)
 
     # if red_control
     dq_r = np.zeros(6)
-    dq = J_plus * dx_vel + dq_null
+    dq = np.dot(J_plus, np.array([v]).T) #+ dq_null
+
+    summe = np.sum(map(lambda x: x*x, dq))
+    if summe>0.5:
+        scale = 0.5/summe
+        dq*=scale
     #----------------------------------------------------------------------
     return dq
+
+# def cartesian_control(joint_transforms, 
+#                       q_current, q0_desired, red_control,
+#                       b_T_ee_current, b_T_ee_desired):
+#     num_joints = len(joint_transforms)
+#     dq = np.zeros(num_joints)
+#     #-------------------- Fill in your code here ---------------------------
+#     # UNI: js4839
+#     # Computing delta_x
+#     delta_x_matrix = np.dot(np.linalg.inv(b_T_ee_current),b_T_ee_desired) # transformation from current to desired ee position
+#     alpha, r = rotation_from_matrix(delta_x_matrix[0:3,0:3])
+#     rot = alpha*r
+#     delta_x = [delta_x_matrix[0,3],delta_x_matrix[1,3],delta_x_matrix[2,3],rot[0],rot[1],rot[2]] # Assemble delta_x
+
+#     # Computing v_ee using v_ee = p*delta_x
+    
+#     p_trans = 1
+#     p_rot = 0.75
+#     v_ee = []
+
+#     for i in range(3): # Translational Components
+#         v_ee.append(delta_x[i]*p_trans)
+#     mag_trans = np.linalg.norm(v_ee)
+#     if (mag_trans > 0.1): # Scaling translational velocity
+#         for i in range(3):
+#             v_ee[i] = v_ee[i]/(10*mag_trans)
+
+#     for i in range(3,len(delta_x)): # Rotational Components
+#         v_ee.append(delta_x[i]*p_rot)
+#     mag_rot = np.linalg.norm(v_ee[3:])
+#     if (mag_rot > 1): # Scaling rotational velocity
+#         for i in range(3,len(delta_x)):
+#             v_ee[i] = v_ee[i]/mag_rot
+    
+#     # Computing each component of Vj
+#     ee_T_j = [np.dot(np.linalg.inv(b_T_ee_current),j) for j in joint_transforms]
+#     ee_R_j = [j[0:3,0:3] for j in ee_T_j]
+#     j_t_ee = [np.linalg.inv(j)[0:3,3] for j in ee_T_j]
+#     S = [np.matrix([[0,-j[2],j[1]],[j[2],0,-j[0]],[-j[1],j[0],0]]) for j in j_t_ee] # This is the S(j_t_ee) term
+#     RS = [] # To contain -ee_R_j dot S(j_t_ee)
+#     Vj_last = [] # To contain the last column of each Vj
+#     for j in range(num_joints):
+#         RS.append(np.dot(-ee_R_j[j],S[j]))
+#         Vj_last.append([RS[j][0,2],RS[j][1,2],RS[j][2,2],ee_R_j[j][0,2],ee_R_j[j][1,2],ee_R_j[j][2,2]])
+#     J = np.matrix(Vj_last)
+#     J = np.transpose(J) # J is 6x7
+
+#     # My own version of pinv
+#     def own_pinv(J,gate=0):
+#         U, s, VT = np.linalg.svd(J) # U is 6x6; VT is 7x7; s should be 6x7 in matrix
+#         s_plus = np.zeros((7,6))
+#         for i in range(len(s)):
+#             s_plus[i][i] = 1/s[i] if (s[i]/s[0] > gate) else 0
+#         J_pseudo = np.dot(np.dot(np.transpose(VT),s_plus),np.transpose(U))
+#         return J_pseudo
+
+#     # Computing dq using J and Vj
+#     for i in range(len(dq)):
+#         # Using my own version of pinv
+#         dq[i] = np.dot(own_pinv(J,0.01),v_ee).tolist()[0][i] # Use .tolist()[0] to access the correct data type
+#         # Using pinv in np library
+#         #dq[i] = np.dot(np.linalg.pinv(J,0.01),v_ee).tolist()[0][i] # Use .tolist()[0] to access the correct data type
+#     max_dq = max(np.absolute(dq))
+#     if (max_dq > 1): # Scaling dq
+#         for i in range(len(dq)):
+#             dq[i] = dq[i]/max_dq
+
+#     # Computing dq_sec
+#     p_sec = 1
+#     dq_sec = np.zeros(7)
+#     dq_sec[0] = p_sec*(q0_desired-q_current[0])
+#     dq_sec = np.transpose(dq_sec)
+    
+#     # Computing dq_null
+#     # Using my own version of pinv
+#     N = np.identity(7)-np.dot(own_pinv(J),J)
+#     #N = np.identity(7)-np.dot(np.linalg.pinv(J),J)
+#     dq_null = np.dot(N,dq_sec)
+    
+#     # Final Constrained dq
+#     dq = dq + dq_null.tolist()[0] # Use .tolist()[0] to access the correct data type
+#     max_dq = max(np.absolute(dq))
+#     if (max_dq > 1): # Scaling dq
+#         for i in range(len(dq)):
+#             dq[i] = dq[i]/max_dq
+#     #----------------------------------------------------------------------
+#     return dq
     
 def convert_from_message(t):
     trans = tf.transformations.translation_matrix((t.translation.x,

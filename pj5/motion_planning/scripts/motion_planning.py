@@ -190,6 +190,7 @@ class MoveArm(object):
         
         # Replace this with your code
         q_list = [q_start, q_goal]
+        
 
         return q_list
 

@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 import math
-import numpy
+import numpy as np
 import random
 from threading import Thread, Lock
 import sys
@@ -39,7 +39,7 @@ def convert_from_message(msg):
     T = tf.transformations.translation_matrix((msg.position.x, 
                                                msg.position.y, 
                                                msg.position.z))
-    return numpy.dot(T,R)
+    return np.dot(T,R)
 
 def convert_from_trans_message(msg):
     R = tf.transformations.quaternion_matrix((msg.rotation.x,
@@ -49,7 +49,7 @@ def convert_from_trans_message(msg):
     T = tf.transformations.translation_matrix((msg.translation.x, 
                                                msg.translation.y, 
                                                msg.translation.z))
-    return numpy.dot(T,R)
+    return np.dot(T,R)
 
 class MoveArm(object):
 
@@ -185,14 +185,80 @@ class MoveArm(object):
         req.robot_state.joint_state = current_joint_state
         res = self.state_valid_service(req)
         return res.valid
-               
-    def motion_plan(self, q_start, q_goal, q_min, q_max):
-        
-        # Replace this with your code
-        q_list = [q_start, q_goal]
-        
 
-        return q_list
+    def is_path_valid(self, start, end, res=0.1):
+        
+        if !self.is_state_valid(end):
+            return False
+        n = np.linalg.norm(end - start)/res
+        dq = (end-start)/n
+        for i in range(n):
+            if !self.is_state_valid (start + i*dq):
+                return False
+        return True
+
+    def new_node(self, start, end, res=0.1, len=1):
+            
+        n = np.linalg.norm(end - start)/res
+        dq = (end-start)/n
+        for i in range(len/res):
+            if !self.is_state_valid (start + (i+1)*dq):
+                return start + i*dq
+
+    def find_nearest_point(self, point, tree):
+        """
+        point: in C-Configuration
+        tree: list of points
+        """
+        return min(tree, key = lambda x: np.linalg.norm(point-x))
+
+    def random_point(self, q_min, q_max):
+        p = []
+        for i in (q_max-q_min):
+            p.append(np.random.random_sample(size = i))
+        print (np.random.random_sample(size = (q_max-q_min)))
+        return p
+    
+    def path_from_tree(self, tree, goal):
+        parent = tree[goal]
+        path = [goal]
+        while(parent):
+            path.append(self.list_from_int(parent), 0)
+            parent = tree[parent]
+        return path
+        
+    def list_from_int(self, l):
+        
+        return 
+    
+    def int_from_list():
+        return 
+
+    def motion_plan(self, q_start, q_goal, q_min, q_max):
+        """
+        q_start: list of joint values of the robot at the starting position. This is the position in configuration space from which to start
+        q_goal: list of joint values of the robot at the goal position. This is the position in configuration space for which to plan
+        q_min: list of lower joint limits
+        q_max: list of upper joint limits
+
+        q_list: list of points in C-space that the robot must go through
+        """"
+        # Replace this with your code
+        tree = {self.int_from_list(q_start):0}
+        tree_list = [start]
+        while(!timeover):
+            randp = self.random_point(q_min, q_max)
+            nearest_point = self.find_nearest_point(randp, tree_list)
+            new_node = self.new_node(nearest_point, randp)
+            if new_node==nearest_point:
+                continue
+            tree[self.int_from_list(new_node)] = self.int_from_list(nearest_point)
+            tree_list.append(new_node)
+            if is_path_valid(new_node, q_goal):
+                tree.append(q_goal)
+                q_list = self.path_from_tree(tree, q_goal)
+                return q_list
+        return -1
 
     def create_trajectory(self, q_list, v_list, a_list, t):
         joint_trajectory = trajectory_msgs.msg.JointTrajectory()
@@ -231,7 +297,7 @@ class MoveArm(object):
             self.mutex.release()
             return
         print "IK solved, planning"
-        trajectory = self.project_plan(numpy.array(q_start), q_goal, self.q_min, self.q_max)
+        trajectory = self.project_plan(np.array(q_start), q_goal, self.q_min, self.q_max)
         if not trajectory.points:
             print "Motion plan failed, aborting"
         else:

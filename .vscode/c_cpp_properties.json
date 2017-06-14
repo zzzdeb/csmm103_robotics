@@ -8,7 +8,15 @@
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
+<<<<<<< HEAD
                 "databaseFilename": ""
+=======
+                "databaseFilename": "",
+                "path": [
+                    "/usr/include",
+                    "/usr/local/include"
+                ]
+>>>>>>> 14b9b4c3924666c12a1e287398368ceb37278cd6
             }
         },
         {
@@ -16,11 +24,26 @@
             "includePath": [
                 "/usr/include",
                 "/usr/local/include",
+<<<<<<< HEAD
                 "/opt/ros/kinetic/include"
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
+=======
+                "/opt/ros/kinetic/include",
+                "/opt/ros/indigo/include"
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": "",
+                "path": [
+                    "/usr/include",
+                    "/usr/local/include",
+                    "/opt/ros/kinetic/include",
+                    "/opt/ros/indigo/include"
+                ]
+>>>>>>> 14b9b4c3924666c12a1e287398368ceb37278cd6
             }
         },
         {
@@ -30,8 +53,19 @@
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
+<<<<<<< HEAD
                 "databaseFilename": ""
             }
         }
     ]
 }
+=======
+                "databaseFilename": "",
+                "path": [
+                    "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include/*"
+                ]
+            }
+        }
+    ]
+}
+>>>>>>> 14b9b4c3924666c12a1e287398368ceb37278cd6

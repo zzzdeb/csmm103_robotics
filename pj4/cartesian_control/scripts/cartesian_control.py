@@ -44,19 +44,22 @@ In addition, the parameters below are relevant only if you are also choosing to 
     (ee_T_b_current,) = np.linalg.inv(b_T_ee_current), 
     current_T_desired = np.dot(ee_T_b_current, b_T_ee_desired)
     
-    proportion = 0.5
     (dx_angle, axis) = rotation_from_matrix(current_T_desired)
-    dx_angle =dx_angle*proportion
-    dx_trans = proportion*tf.transformations.translation_from_matrix(current_T_desired)
+    dx_angle =dx_angle
+    dx_trans = tf.transformations.translation_from_matrix(current_T_desired)
+    temp = np.linalg.norm(dx_trans)
+    if temp>1:
+        proportion = 1/temp
+        dx_trans *= proportion
     # if dx_vel>0.5:
     #     dx_vel = 0.5
     v = np.zeros(6)
     v[:3] = dx_trans.copy()
     # v[3:] = tf.transformations.euler_from_matrix(v_ee)
     v[3:] = axis*dx_angle
-    for i in range(len(v)):
-        if v[i]>0.1:
-            v[i] = 0.1
+    # for i in range(len(v)):
+    #     if v[i]>0.5:
+    #         v[i] = 0.5
     J = np.zeros((6,num_joints))
     J_i = np.zeros(6)
     for (num, joint_t) in enumerate(joint_transforms):
@@ -76,14 +79,14 @@ In addition, the parameters below are relevant only if you are also choosing to 
         # J.concatinate J_temp[:,5]
         J[:,num] = J_i
 
-    epsilon = 0.0000000001
+    epsilon = 0.000000000001
     J_plus = np.linalg.pinv(J, epsilon)
 
     # if red_control
     dq_r = np.zeros(6)
     dq = np.dot(J_plus, np.array([v]).T) #+ dq_null
 
-    summe = np.sum(map(lambda x: x*x, dq))
+    summe = np.linalg.norm(dq)
     if summe>0.5:
         scale = 0.5/summe
         dq*=scale

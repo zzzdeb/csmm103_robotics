@@ -8,6 +8,7 @@
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
+
                 "databaseFilename": "",
                 "path": [
                     "/usr/include",
@@ -20,8 +21,7 @@
             "includePath": [
                 "/usr/include",
                 "/usr/local/include",
-                "/opt/ros/kinetic/include",
-                "/opt/ros/indigo/include"
+                "/opt/ros/kinetic/include"
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,

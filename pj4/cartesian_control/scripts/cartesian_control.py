@@ -7,6 +7,7 @@ from threading import Thread, Lock
 
 import rospy
 import tf
+
 from geometry_msgs.msg import Transform
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Float32
@@ -39,40 +40,63 @@ In addition, the parameters below are relevant only if you are also choosing to 
 
     """
     num_joints = len(joint_transforms)
-    dq = np.zeros(num_joints)
-    #-------------------- Fill in your code here ---------------------------
-    ee_T_b_current = np.linalg.inv(b_T_ee_current), 
-    dx_matrix = np.dot(b_T_ee_desired, ee_T_b_current)
+    dq = np.zeros((num_joints,1))
+    #-------------------- Fill in your code here ---------------------------  
+    ee_T_b_current = tf.transformations.inverse_matrix(b_T_ee_current)
+    
+    dx_matrix = np.dot(ee_T_b_current, b_T_ee_desired)
     # dx = rotation_from_matrix(dx_matrix)
 
-    proportion = 1
-    dx_vel = proportion*d_x
+    proportion = 0.1
+    dx_vel_trans = proportion * tf.transformations.translation_from_matrix(dx_matrix)
+    dx_vel_rot_angle, dx_vel_rot_ax = rotation_from_matrix(dx_matrix)
+    dx_vel_rot_angle *= proportion
+    # dx_vel = np.array([dx_vel]).T
     # if dx_vel>0.5:
     #     dx_vel = 0.5
+    for i in range(len(dx_vel_trans)):
+        if dx_vel_trans[i]>0.1:
+            dx_vel_trans[i]=0.1
+    if dx_vel_rot_angle>0.1:
+        dx_vel_rot_angle = 0.1
+    dx_vel_matrix = tf.transformations.rotation_matrix(dx_vel_rot_angle, dx_vel_rot_ax)
+    dx_vel_matrix[:3,3] = dx_vel_trans
+    v_matrix = np.dot(b_T_ee_current, dx_vel_matrix)
+    v = np.zeros(6)
+    v[:3] = tf.transformations.translation_from_matrix(v_matrix)
+    v[3:] = tf.transformations.euler_from_matrix(v_matrix)
+    v = np.array([v]).T
 
-    v = np.dot()
     J = np.zeros((6,num_joints))
-    J_i = np.zeros((6,1))
-    for (num, joint_t) in enumerate(joint_transforms):
+    J_i = np.zeros(6)
+    for (i, joint_t) in enumerate(joint_transforms):
         # J_i = calculate from joint_t and b_T_ee_current
-        atb = np.linalg.inv(joint_t)[3,:3]
-        [x, y, z] = atb
+        inv = tf.transformations.inverse_matrix(joint_t)
+        atb = tf.transformations.translation_from_matrix(inv)
+        [x, y, z] = atb.T
         s_t_ab = np.array([
-            [0, -z], y,
+            [0, -z, y],
             [z, 0, -x],
             [-y, x, 0]
             ])
-        J_i[:3] = np.dot(-joint_t,s_t_ab)[:3,2]
-        J_i[3:] = joint_t[:3,2]
+       
+        J_i[:3] = np.dot(-inv[:3,:3], s_t_ab)[:,2]
+        J_i[3:] = np.array([inv[:3,2]])
         # J.concatinate J_temp[:,5]
         J[:,i] = J_i
 
     epsilon = 0.1
     J_plus = np.linalg.pinv(J, epsilon)
 
-    # if red_control
-    dq_r = np.zeros(6)
-    dq = J_plus * dx_vel + dq_null
+    if red_control:
+        dq_r = np.zeros(num_joints)
+        dq += dq_r
+    dq += J_plus.dot(v)
+
+    #scaling
+    for i in range(len(dq)):
+        if dq[i]>0.1:
+            dq[i]=0.1
     #----------------------------------------------------------------------
     return dq
     
